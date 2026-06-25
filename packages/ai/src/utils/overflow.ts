@@ -51,6 +51,7 @@ const OVERFLOW_PATTERNS = [
 	/entity too large/i, // Generic HTTP 413 variant
 	/\b413\b.*\b(request|payload|entity)\b.*\btoo large\b/i, // "413 Request Entity Too Large" variants
 	/model_context_window_exceeded/i, // z.ai non-standard finish_reason surfaced as error text
+	/context overflow via proxy/i, // LiteLLM-style empty response promoted to error
 ];
 /**
  * Threshold below which a "successful" (stopReason "stop") response with empty

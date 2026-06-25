@@ -1090,7 +1090,7 @@ describe("agentLoop - empty response overflow detection", () => {
 		const assistantMessage = messages.find(m => m.role === "assistant") as AssistantMessage | undefined;
 		expect(assistantMessage).toBeDefined();
 		expect(assistantMessage!.stopReason).toBe("error");
-		expect(assistantMessage!.errorMessage).toContain("empty response");
+		expect(assistantMessage!.errorMessage).toContain("context overflow via proxy");
 	});
 
 	it("does not promote empty stop response with realistic usage to error", async () => {

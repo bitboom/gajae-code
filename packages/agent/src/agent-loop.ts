@@ -55,16 +55,6 @@ import type {
 
 /** Sentinel returned by the abort race in `streamAssistantResponse`. */
 const ABORTED: unique symbol = Symbol("agent-loop-aborted");
-/**
- * Detect empty "successful" responses that indicate a proxy-level context
- * overflow (e.g. LiteLLM returning `content: []`, `stopReason: "stop"`, and a
- * fabricated near-zero usage). We delegate to {@link isContextOverflow} which
- * has the threshold constant, so the detection logic stays in one place.
- */
-function isEmptyResponseOverflow(message: AssistantMessage): boolean {
-	return isContextOverflow(message);
-}
-
 class HarmonyLeakInterruption extends Error {
 	constructor(
 		readonly detection: HarmonyDetection,
@@ -583,11 +573,11 @@ async function runLoopBody(
 			// error. Without this guard the agent loop treats the empty response as a
 			// natural turn completion and stops, leaving the user with a frozen session.
 			// Promote it to an error so the overflow/compaction recovery path can fire.
-			if (message.stopReason === "stop" && message.content.length === 0 && isEmptyResponseOverflow(message)) {
+			if (message.stopReason === "stop" && message.content.length === 0 && isContextOverflow(message)) {
 				message.stopReason = "error";
 				message.errorMessage = message.errorMessage
-					? `${message.errorMessage} | Provider returned an empty response with anomalously low token usage (possible context overflow via proxy)`
-					: "Provider returned an empty response with anomalously low token usage (possible context overflow via proxy)";
+					? `${message.errorMessage} | Provider returned an empty response with anomalously low token usage (context overflow via proxy)`
+					: "Provider returned an empty response with anomalously low token usage (context overflow via proxy)";
 			}
 
 			if (message.stopReason === "error" || message.stopReason === "aborted") {

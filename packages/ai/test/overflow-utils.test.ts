@@ -139,3 +139,30 @@ describe("isContextOverflow - empty response with low usage (proxy-level overflo
 		expect(isContextOverflow(message)).toBe(false);
 	});
 });
+
+describe("isContextOverflow - promoted empty response (regression)", () => {
+	// After agent-loop promotes stopReason "stop" → "error", the message must
+	// still be detected as overflow so #checkCompaction fires auto-compaction.
+	it("detects promoted message: stopReason error + empty content + low usage + overflow errorMessage", () => {
+		const message: AssistantMessage = {
+			role: "assistant",
+			content: [],
+			api: "openai-completions",
+			provider: "spac-litellm",
+			model: "zai-org/GLM-5.2",
+			usage: {
+				input: 1,
+				output: 1,
+				cacheRead: 0,
+				cacheWrite: 0,
+				totalTokens: 2,
+				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+			},
+			stopReason: "error",
+			errorMessage:
+				"Provider returned an empty response with anomalously low token usage (context overflow via proxy)",
+			timestamp: Date.now(),
+		};
+		expect(isContextOverflow(message)).toBe(true);
+	});
+});
